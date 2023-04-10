@@ -1,34 +1,33 @@
-const { message } = require("telegraf/filters");
+import { message } from 'telegraf/filters';
+import express from 'express';
+import path from 'path';
+import dotenv from 'dotenv';
+import { Telegraf } from 'telegraf';
+import * as fs from 'fs';
 
-const express = require("express");
-const expressApp = express();
-const axios = require("axios");
-const path = require("path");
-const fs = require("fs");
-const port = process.env.PORT || 3000;
-expressApp.use(express.static("static"));
-expressApp.use(express.json());
-require("dotenv").config();
-
-const { Telegraf } = require("telegraf");
-
-const bot = new Telegraf(process.env.BOT_TOKEN);
+dotenv.config();
 
 class App {
-  constructor() {}
-  run() {
-    expressApp.get("/", (req: any, res: any) => {
-      res.sendFile(path.join(__dirname + "../index.html"));
+  public controllersFolder: string = __dirname + '/controllers';
+  private bot: Telegraf;
+  private express: express;
+
+  constructor() {
+    this.bot = new Telegraf(process.env.BOT_TOKEN);
+    this.express = express();
+    this.express.use(express.static('static'));
+    this.express.use(express.json());
+    // const axios = require('axios');
+    // const port = process.env.PORT || 3000;
+  }
+
+  run(): void {
+    this.express.get('/', (req: any, res: any) => {
+      res.sendFile(path.join(__dirname + '../index.html'));
     });
 
-    bot.launch();
-    this.parseControllers();
-
-    //   bot.command('start', (ctx: any) => {
-    //       console.log(ctx.from)
-    //       bot.telegram.sendMessage(ctx.chat.id, 'Hello there! Welcome to the Code Capsules telegram bot.\nI respond to /ethereum. Please try it', {
-    //       })
-    //     })
+    this.bot.launch();
+    this.installControllers();
 
     //   bot.command('ethereum', (ctx: any) => {
     //       var rate;
@@ -58,25 +57,36 @@ class App {
     //           })
     //       })
     //   })
-
-    //   bot.on("message", (ctx: any) => {
-    //       console.log(ctx.from, ctx.message)
-    //       setTimeout(() => {
-    //           bot.telegram.sendMessage(ctx.chat.id, "Сам такой", {
-    //           })
-    //       })
-    //   });
   }
-  parseControllers() {
-    const testFolder = "./controller/";
-    const fs = require("fs");
-    console.log(fs);
-    fs.readdir(testFolder, (err: any, files: any) => {
-      console.log(files);
-      //   files.forEach((file: any) => {
-      //     console.log(file);
-      //   });
+
+  getBot(): Telegraf {
+    if (!this.bot) {
+      this.bot = new Telegraf(process.env.BOT_TOKEN);
+    }
+    return this.bot;
+  }
+
+  /**
+   * Parse "controllers" folder
+   */
+  private installControllers(): void {
+    fs.readdir(this.controllersFolder, (err: any, files: any) => {
+      files.forEach(this.installController.bind(this));
     });
+  }
+
+  /**
+   * Install certain controller
+   * @param file file name of the controller from "controllers" folder
+   */
+  private async installController(file: string): Promise<void> {
+    try {
+      const controllerClass = await import(this.controllersFolder + '/' + file);
+      const controller = new controllerClass.default(this.bot);
+      controller.install();
+    } catch (e) {
+      console.log(e);
+    }
   }
 }
 

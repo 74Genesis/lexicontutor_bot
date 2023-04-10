@@ -1,11 +1,16 @@
 {
-  "compilerOptions":
-    {
-      "target": "es2018",
-      "module": "commonjs",
-      "outDir": "dist",
-      "sourceMap": true,
-    },
+  "compilerOptions": {
+    "target": "es2018",
+    "module": "commonjs",
+    "outDir": "dist",
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
+  },
+  "typedocOptions": {
+    "entryPoints": ["index.ts"],
+    "out": "docs"
+  },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules"],
-  }
+  "exclude": ["node_modules"]
+}
