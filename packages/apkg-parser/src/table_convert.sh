@@ -1,0 +1,1 @@
+sqlite3 $1 '.mode json' ".once $2" "select * from $3"

@@ -1,0 +1,40 @@
+{
+  "name": "apkg-parser",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "parse apkg files from anki app",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "test0": "ava",
+    "test": "ava"
+  },
+  "keywords": [
+    "anki",
+    "apkg"
+  ],
+  "author": "Igor Razumov",
+  "license": "ISC",
+  "ava": {
+    "extensions": {
+      "ts": "module"
+    },
+    "nodeArguments": [
+      "--loader=ts-node/esm"
+    ]
+  },
+  "dependencies": {
+    "fs": "^0.0.1-security",
+    "node-zip": "^1.1.1",
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "@ava/typescript": "^4.0.0",
+    "@types/node": "^18.15.11",
+    "ava": "^5.2.0",
+    "cross-env": "^7.0.3",
+    "ts-node": "^10.9.1",
+    "tslib": "^2.5.0",
+    "typescript": "^5.0.4"
+  }
+}
