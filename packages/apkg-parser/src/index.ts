@@ -1,15 +1,9 @@
 import * as fs from 'fs';
 import Zip from 'node-zip';
-import sqlite from 'sqlite3';
-const sqlite3 = sqlite.verbose();
 import * as crypto from 'crypto';
 import * as path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 import tableConverter from './tableConverter.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 const _deckName = 'collection.anki21';
 
 interface Config {
@@ -30,6 +24,10 @@ export default class ApkgParser {
     this.deckDirName = crypto.randomBytes(16).toString('hex');
   }
 
+  /**
+   * Returns all notes from collection, including values for SRS algorithm
+   * @param file anki database path. apkg/colpkg extensions supported only
+   */
   async deckToJson(file: string) {
     const name: string = file.split('/').pop().split('.')[0];
     const zip: Zip = this.getZip(file);
@@ -48,8 +46,14 @@ export default class ApkgParser {
     console.log();
 
     this.removeTempDir();
+
+    return tables;
   }
 
+  /**
+   * Converts sqlite tables to json format
+   * @param tables list of tables
+   */
   private tablesToJson(tables: string[]) {
     const res = {};
     try {
@@ -64,6 +68,10 @@ export default class ApkgParser {
     return res;
   }
 
+  /**
+   * Returns zip instance for anki collection
+   * @param file path to anki collection file
+   */
   private getZip(file: string): Zip {
     try {
       return new Zip(fs.readFileSync(file), { base64: false, checkCRC32: true });
@@ -72,6 +80,9 @@ export default class ApkgParser {
     }
   }
 
+  /**
+   * Creates temporary dir to unpack anki collection and parse database
+   */
   private createTempDir() {
     try {
       const p = this.getTempDir();
@@ -83,6 +94,9 @@ export default class ApkgParser {
     }
   }
 
+  /**
+   * Remove temporary dir used for unpack collection
+   */
   private removeTempDir() {
     try {
       const p = this.getTempDir();
@@ -92,9 +106,16 @@ export default class ApkgParser {
     }
   }
 
+  /**
+   * Temp dir path
+   */
   private getTempDir() {
     return path.join(this.config.tempFilesPath, this.deckDirName);
   }
+
+  /**
+   * Deck path
+   */
   private getDeckPath() {
     return path.join(this.getTempDir(), _deckName);
   }
