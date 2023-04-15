@@ -6,10 +6,11 @@ import * as crypto from 'crypto';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import tableConverter from './tableConverter';
+import tableConverter from './tableConverter.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+const _deckName = 'collection.anki21';
 
 interface Config {
   tempFilesPath?: string;
@@ -38,32 +39,29 @@ export default class ApkgParser {
 
     for (const key in zip.files) {
       const file = zip.files[key];
-      if (['collection.anki2', 'collection.anki21'].includes(file.name)) {
+      if (file.name === _deckName) {
         fs.writeFileSync(this.getDeckPath(), file._data, { encoding: 'binary' });
       }
     }
 
-    try {
-      console.log(this.getDeckPath());
-      sqlite3.verbose();
-      const db = new sqlite3.Database(this.getDeckPath(), sqlite3.OPEN_READWRITE, (err) => {
-        if (err) {
-          console.error(err.message, this.getDeckPath());
-        }
-        console.log('Connected to the database.');
-        try {
-          db.exec('SELECT * from notes', (res) => {
-            console.log(res);
-          });
-        } catch (e) {
-          console.log(e);
-        }
-      });
-    } catch (e) {
-      console.log(e);
-    }
+    const tables = this.tablesToJson(['col', 'notes', 'cards', 'revlog', 'graves']);
+    console.log();
 
-    // this.removeTempDir();
+    this.removeTempDir();
+  }
+
+  private tablesToJson(tables: string[]) {
+    const res = {};
+    try {
+      for (let i; i <= tables.length; i++) {
+        const out = path.join(this.getTempDir(), `${tables[i]}.json`);
+        const tablejson = tableConverter(this.getDeckPath(), tables[i], out);
+        if (tablejson.trim()) res[tables[i]] = JSON.parse(tablejson);
+      }
+    } catch (e) {
+      throw new Error('Fail to convert tables to json: ' + e.message);
+    }
+    return res;
   }
 
   private getZip(file: string): Zip {
