@@ -4,8 +4,13 @@ import * as crypto from 'crypto';
 import * as path from 'path';
 import tableConverter from './tableConverter.js';
 import Card, { Note, Deck } from './card.js';
+import Zstd from 'zstd-codec';
 
 const _deckName = 'collection.anki21';
+const DB_FILES = {
+  latest: 'collection.anki21b',
+  legacy: 'collection.anki21',
+};
 
 interface Config {
   tempFilesPath?: string;
@@ -32,38 +37,48 @@ export default class ApkgParser {
    * @param file anki database path. apkg/colpkg extensions supported
    */
   getAnkiCards(file: string): Card[] {
-    const name: string = file.split('/').pop().split('.')[0];
-    const zip: Zip = this.getZip(file);
-    const media: Object = JSON.parse(zip.files.media._data);
+    try {
+      const zip: Zip = this.getZip(file);
 
-    this.createTempDir();
+      this.createTempDir();
 
-    for (const key in zip.files) {
-      const file = zip.files[key];
-      if (file.name === _deckName) {
-        fs.writeFileSync(this.getDeckPath(), file._data, { encoding: 'binary' });
+      for (const key in zip.files) {
+        const file = zip.files[key];
+        if ([DB_FILES.latest, DB_FILES.legacy].includes(file.name)) {
+          fs.writeFileSync(this.getTempDir() + file.name, file._data, { encoding: 'binary' });
+        }
       }
+
+      // unpack new db version
+      if (fs.existsSync(this.getTempDir() + '/' + DB_FILES.latest)) {
+        // Zstd.run();
+      }
+      const tables = this.tablesToJson(this.getDbName(), [('col', 'notes', 'cards', 'revlog', 'graves')]);
+
+      const cards = this.parseCards(tables);
+
+      this.removeTempDir();
+
+      return cards;
+    } catch (e) {
+      throw new Error('Fail to get anki cards');
     }
+  }
 
-    const tables = this.tablesToJson(['col', 'notes', 'cards', 'revlog', 'graves']);
-
-    const notes = this.parseCards(tables);
-
-    this.removeTempDir();
-
-    return notes;
+  getDbName() {
+    // fs.existsSync(this.getTempDir() + '/' + DB_FILES.latest)
+    return '';
   }
 
   /**
    * Converts sqlite tables to json format
    * @param tables list of tables
    */
-  private tablesToJson(tables: string[]): Record<string, Object[]> {
+  private tablesToJson(db: string, tables: string[]): Record<string, Object[]> {
     const res = {};
     try {
       for (let i = 0; i < tables.length; i++) {
-        console.log('TABLE: ', tables[i]);
-        const tablejson = tableConverter(this.getDeckPath(), tables[i]);
+        const tablejson = tableConverter(db, tables[i]);
         res[tables[i]] = !!tablejson.trim() ? JSON.parse(tablejson) : [];
       }
     } catch (e) {
@@ -171,12 +186,5 @@ export default class ApkgParser {
    */
   private getTempDir() {
     return path.join(this.config.tempFilesPath, this.deckDirName);
-  }
-
-  /**
-   * Deck path
-   */
-  private getDeckPath() {
-    return path.join(this.getTempDir(), _deckName);
   }
 }

@@ -26,7 +26,8 @@
   "dependencies": {
     "fs": "^0.0.1-security",
     "node-zip": "^1.1.1",
-    "sqlite3": "^5.1.6"
+    "sqlite3": "^5.1.6",
+    "zstd-codec": "^0.1.4"
   },
   "devDependencies": {
     "@ava/typescript": "^4.0.0",
