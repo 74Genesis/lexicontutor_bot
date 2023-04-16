@@ -3,12 +3,15 @@ import Zip from 'node-zip';
 import * as crypto from 'crypto';
 import * as path from 'path';
 import tableConverter from './tableConverter.js';
+import Card from './card.js';
 
 const _deckName = 'collection.anki21';
 
 interface Config {
   tempFilesPath?: string;
 }
+
+// TODO: save errors to log
 
 export default class ApkgParser {
   private config: Config;
@@ -25,10 +28,10 @@ export default class ApkgParser {
   }
 
   /**
-   * Returns all notes from collection, including values for SRS algorithm
-   * @param file anki database path. apkg/colpkg extensions supported only
+   * Returns all cards from collection, with additional denormolized information
+   * @param file anki database path. apkg/colpkg extensions supported
    */
-  async deckToJson(file: string) {
+  deckToJson(file: string): Card[] {
     const name: string = file.split('/').pop().split('.')[0];
     const zip: Zip = this.getZip(file);
     const media: Object = JSON.parse(zip.files.media._data);
@@ -43,29 +46,57 @@ export default class ApkgParser {
     }
 
     const tables = this.tablesToJson(['col', 'notes', 'cards', 'revlog', 'graves']);
-    console.log();
+
+    const notes = this.parseNotes(tables);
 
     this.removeTempDir();
 
-    return tables;
+    return notes;
   }
 
   /**
    * Converts sqlite tables to json format
    * @param tables list of tables
    */
-  private tablesToJson(tables: string[]) {
+  private tablesToJson(tables: string[]): Record<string, Object[]> {
     const res = {};
     try {
-      for (let i; i <= tables.length; i++) {
-        const out = path.join(this.getTempDir(), `${tables[i]}.json`);
-        const tablejson = tableConverter(this.getDeckPath(), tables[i], out);
-        if (tablejson.trim()) res[tables[i]] = JSON.parse(tablejson);
+      for (let i = 0; i < tables.length; i++) {
+        console.log('TABLE: ', tables[i]);
+        const tablejson = tableConverter(this.getDeckPath(), tables[i]);
+        res[tables[i]] = !!tablejson.trim() ? JSON.parse(tablejson) : [];
       }
     } catch (e) {
       throw new Error('Fail to convert tables to json: ' + e.message);
     }
     return res;
+  }
+
+  /**
+   * Returns all notes finded in database
+   * @param tables anki db tables in json format
+   */
+  private parseNotes(tables: Record<string, Record<string, any>[]>): Card[] {
+    try {
+      const notes: Card[] = [];
+      for (let i = 0; i < tables?.cards?.length || 0; i++) {
+        const c = new Card({
+          id: +tables?.cards[i]?.id,
+          mod: +tables?.cards[i]?.mod,
+          type: tables?.cards[i]?.type,
+          ivl: +tables?.cards[i]?.ivl,
+          factor: +tables?.cards[i]?.factor,
+          reps: +tables?.cards[i]?.reps,
+          lapses: +tables?.cards[i]?.lapses,
+          left: +tables?.cards[i]?.left,
+        });
+
+        notes.push(c);
+      }
+      return notes;
+    } catch (e) {
+      throw new Error('Fail to parse anki cards: ' + e?.message);
+    }
   }
 
   /**

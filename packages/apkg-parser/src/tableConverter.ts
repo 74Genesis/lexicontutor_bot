@@ -17,7 +17,7 @@ const __dirname = dirname(__filename);
  * @param script converting script path
  */
 
-export default function (db: string, table: string, out: string, script = __dirname + '/table_convert.sh') {
+export default function (db: string, table: string, script = __dirname + '/table_convert.sh') {
   try {
     const res = child_process.execSync(`sh ${script} ${db} ${table}`).toString();
     return res;
