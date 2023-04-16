@@ -3,7 +3,7 @@ import Zip from 'node-zip';
 import * as crypto from 'crypto';
 import * as path from 'path';
 import tableConverter from './tableConverter.js';
-import Card from './card.js';
+import Card, { Note, Deck } from './card.js';
 
 const _deckName = 'collection.anki21';
 
@@ -31,7 +31,7 @@ export default class ApkgParser {
    * Returns all cards from collection, with additional denormolized information
    * @param file anki database path. apkg/colpkg extensions supported
    */
-  deckToJson(file: string): Card[] {
+  getAnkiCards(file: string): Card[] {
     const name: string = file.split('/').pop().split('.')[0];
     const zip: Zip = this.getZip(file);
     const media: Object = JSON.parse(zip.files.media._data);
@@ -47,7 +47,7 @@ export default class ApkgParser {
 
     const tables = this.tablesToJson(['col', 'notes', 'cards', 'revlog', 'graves']);
 
-    const notes = this.parseNotes(tables);
+    const notes = this.parseCards(tables);
 
     this.removeTempDir();
 
@@ -73,24 +73,53 @@ export default class ApkgParser {
   }
 
   /**
-   * Returns all notes finded in database
+   * Returns all cards finded in database
    * @param tables anki db tables in json format
    */
-  private parseNotes(tables: Record<string, Record<string, any>[]>): Card[] {
+  private parseCards(tables: Record<string, Record<string, any>[]>): Card[] {
     try {
       const notes: Card[] = [];
-      for (let i = 0; i < tables?.cards?.length || 0; i++) {
+      for (let i = 0; i < tables?.cards?.length; i++) {
         const c = new Card({
-          id: +tables?.cards[i]?.id,
-          mod: +tables?.cards[i]?.mod,
-          type: tables?.cards[i]?.type,
-          ivl: +tables?.cards[i]?.ivl,
-          factor: +tables?.cards[i]?.factor,
-          reps: +tables?.cards[i]?.reps,
-          lapses: +tables?.cards[i]?.lapses,
-          left: +tables?.cards[i]?.left,
+          id: +tables?.cards?.[i]?.id,
+          mod: +tables?.cards?.[i]?.mod,
+          type: tables?.cards?.[i]?.type,
+          ivl: +tables?.cards?.[i]?.ivl,
+          factor: +tables?.cards?.[i]?.factor,
+          reps: +tables?.cards?.[i]?.reps,
+          lapses: +tables?.cards?.[i]?.lapses,
+          left: +tables?.cards?.[i]?.left,
         });
 
+        // add card's Note info
+        for (let j = 0; j < tables?.notes?.length; j++) {
+          if (tables?.cards[i]?.nid === tables?.notes[j]?.id) {
+            c.nid = {
+              id: tables?.notes?.[j].id,
+              guid: tables?.notes?.[j].guid,
+              mod: tables?.notes?.[j].mod,
+              usn: tables?.notes?.[j].usn,
+              tags: tables?.notes?.[j].tags,
+              flds: tables?.notes?.[j].flds,
+              sfld: tables?.notes?.[j].sfld,
+            };
+          }
+        }
+
+        // add card's Deck info
+        for (let k = 0; k < tables?.col?.length; k++) {
+          const decks = JSON.parse(tables?.col?.[k]?.decks || '{}');
+          if (decks[tables?.cards[i]?.did]) {
+            const deck = decks[tables?.cards[i]?.did];
+            c.did = {
+              name: deck?.name,
+              collapsed: deck?.collapsed,
+              id: deck?.id,
+              mod: deck?.mod,
+              desc: deck?.desc,
+            };
+          }
+        }
         notes.push(c);
       }
       return notes;

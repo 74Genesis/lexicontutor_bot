@@ -10,7 +10,7 @@ test('foo', async (t) => {
   const p = new parser({
     tempFilesPath: __dirname + '/temp/',
   });
-  console.log(p.deckToJson(__dirname + '/deck_media.apkg'));
+  console.log(p.getAnkiCards(__dirname + '/deck_media.apkg'));
   // console.log(parser);
   t.pass();
 });
