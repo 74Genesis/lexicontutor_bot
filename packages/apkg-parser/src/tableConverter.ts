@@ -19,7 +19,8 @@ const __dirname = dirname(__filename);
 
 export default function (db: string, table: string, script = __dirname + '/table_convert.sh') {
   try {
-    const res = child_process.execSync(`sh ${script} ${db} ${table}`).toString();
+    // const res = child_process.execSync(`sh ${script} ${db} ${table}`).toString();
+    const res = child_process.execSync(`sqlite3 ${db} '.mode json' "select * from ${table}"`).toString();
     return res;
   } catch (e) {
     throw new Error('Fail to convert sqlite database table to json: ' + e?.message);

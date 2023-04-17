@@ -3,10 +3,9 @@ import Zip from 'node-zip';
 import * as crypto from 'crypto';
 import * as path from 'path';
 import tableConverter from './tableConverter.js';
-import Card, { Note, Deck } from './card.js';
-import Zstd from 'zstd-codec';
+import Card from './card.js';
+import child_process from 'child_process';
 
-const _deckName = 'collection.anki21';
 const DB_FILES = {
   latest: 'collection.anki21b',
   legacy: 'collection.anki21',
@@ -36,38 +35,38 @@ export default class ApkgParser {
    * Returns all cards from collection, with additional denormolized information
    * @param file anki database path. apkg/colpkg extensions supported
    */
-  getAnkiCards(file: string): Card[] {
-    try {
-      const zip: Zip = this.getZip(file);
+  async getAnkiCards(file: string): Promise<Card[]> {
+    const zip: Zip = this.getZip(file);
+    let db = null;
 
-      this.createTempDir();
+    this.createTempDir();
 
-      for (const key in zip.files) {
-        const file = zip.files[key];
-        if ([DB_FILES.latest, DB_FILES.legacy].includes(file.name)) {
-          fs.writeFileSync(this.getTempDir() + file.name, file._data, { encoding: 'binary' });
-        }
+    for (const key in zip.files) {
+      const file = zip.files[key];
+
+      // legacy database
+      if (DB_FILES.legacy === file.name) {
+        db = path.join(this.getTempDir(), DB_FILES.legacy);
+        fs.writeFileSync(db, file._data, { encoding: 'binary' });
       }
 
-      // unpack new db version
-      if (fs.existsSync(this.getTempDir() + '/' + DB_FILES.latest)) {
-        // Zstd.run();
+      // latest anki db is a zstd compressed file and has to be decompress first
+      if (DB_FILES.latest === file.name) {
+        const zst = path.join(this.getTempDir(), DB_FILES.latest + '.zst');
+        fs.writeFileSync(zst, file._data, { encoding: 'binary' });
+
+        db = path.join(this.getTempDir(), DB_FILES.latest);
+        child_process.execSync(`unzstd ${zst} -o ${db}`);
       }
-      const tables = this.tablesToJson(this.getDbName(), [('col', 'notes', 'cards', 'revlog', 'graves')]);
-
-      const cards = this.parseCards(tables);
-
-      this.removeTempDir();
-
-      return cards;
-    } catch (e) {
-      throw new Error('Fail to get anki cards');
     }
-  }
 
-  getDbName() {
-    // fs.existsSync(this.getTempDir() + '/' + DB_FILES.latest)
-    return '';
+    const tables = this.tablesToJson(db, ['col', 'notes', 'cards', 'revlog', 'graves']);
+
+    const cards = this.parseCards(tables);
+
+    this.removeTempDir();
+
+    return cards;
   }
 
   /**

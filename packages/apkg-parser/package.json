@@ -16,6 +16,9 @@
   "author": "Igor Razumov",
   "license": "ISC",
   "ava": {
+    "files": [
+      "test/**/*.test.ts"
+    ],
     "extensions": {
       "ts": "module"
     },

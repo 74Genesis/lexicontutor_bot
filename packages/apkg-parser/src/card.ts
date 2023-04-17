@@ -1,12 +1,12 @@
 export interface Note {
   id: number;
-  guid: number;
+  guid: string;
   // mid: number;
   mod: number;
   usn: number;
   tags: string;
   flds: string;
-  sfld: number;
+  sfld: string;
   // csum:number;
 }
 export interface Deck {
