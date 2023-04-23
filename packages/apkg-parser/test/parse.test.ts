@@ -9,7 +9,7 @@ import Card from '../src/card.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-//TODO: test different functions and temp files
+//TODO: test different functions, temp files, exceptions
 
 test('Decks parsing result', async (t) => {
   const p = new parser({
