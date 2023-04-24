@@ -1,5 +1,7 @@
 import { CONSTANT } from './../../constants';
 
+//TODO: make format of returning data more free and flexible for different dictionaries
+
 type Directions = keyof typeof CONSTANT.TRANSLATE_DIRECTION; //  "name" | "age"
 
 interface DictionaryOptions {
