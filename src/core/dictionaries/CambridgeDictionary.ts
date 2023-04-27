@@ -61,7 +61,7 @@ export default class CambrdgeDictionary extends Dictionary {
       const variants = this.$(wrapper).find('.dsense');
       const res: string[] = [];
       for (let i = 0; i < variants.length; i++) {
-        const translate = this.$(variants[i]).find('.trans').eq(0).text().trim();
+        const translate = this.clearText(this.$(variants[i]).find('.trans').eq(0).text().trim());
         res.push(translate);
       }
       return res.join(', ');
@@ -75,9 +75,9 @@ export default class CambrdgeDictionary extends Dictionary {
       const variants = this.$(wrapper).find('.dsense');
       const res: string[] = [];
       for (let i = 0; i < variants.length; i++) {
-        const context = this.$(variants[i]).find('.dsense_h').eq(0).text().trim();
-        const explain = this.$(variants[i]).find('.ddef_d').eq(0).text().trim();
-        const translate = this.$(variants[i]).find('.trans').eq(0).text().trim();
+        const context = this.clearText(this.$(variants[i]).find('.dsense_h').eq(0).text().trim());
+        const explain = this.clearText(this.$(variants[i]).find('.ddef_d').eq(0).text().trim());
+        const translate = this.clearText(this.$(variants[i]).find('.trans').eq(0).text().trim());
         res.push(`${translate}: ${explain} ${context}`);
       }
       return res;
@@ -85,13 +85,14 @@ export default class CambrdgeDictionary extends Dictionary {
       console.error(e?.message);
     }
   }
+
   private getExamples(wrapper: Element): string[] {
     try {
       const variants = this.$(wrapper).find('.dsense');
       const res: string[] = [];
       for (let i = 0; i < variants.length; i++) {
-        const example = this.$(variants[i]).find('.examp').eq(0).text().trim();
-        res.push(example);
+        const example = this.clearText(this.$(variants[i]).find('.examp').eq(0).text().trim());
+        if (example) res.push(example);
       }
       return res;
     } catch (e) {
@@ -99,11 +100,22 @@ export default class CambrdgeDictionary extends Dictionary {
     }
   }
 
+  private clearText(payload: string) {
+    return payload
+      .replace(/&nbsp;/g, ' ')
+      .replace(/\u00A0/g, ' ')
+      .replace(/&ensp;/g, ' ')
+      .replace(/\u2002/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .replace(/[^a-zA-Zа-яё0-9\-!@#$%^&*,.;()— ]/g, '');
+  }
+
   private getUrl(payload: string): string {
     const phrase = payload
       .trim()
       .replace(/[^a-zA-Z0-9\- ]/g, '')
       .replace(' ', '-');
-    return `https://dictionary.cambridge.org/dictionary/english-russian/${phrase}`;
+    return encodeURI(`https://dictionary.cambridge.org/dictionary/english-russian/${phrase}`);
   }
 }

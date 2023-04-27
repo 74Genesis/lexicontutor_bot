@@ -50,6 +50,7 @@
   "dependencies": {
     "apkg-parser": "file:packages/apkg-parser",
     "axios": "^1.3.6",
+    "axios-mock-adapter": "^1.21.4",
     "cheerio": "^1.0.0-rc.12",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",

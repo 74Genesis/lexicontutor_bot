@@ -1,10 +1,20 @@
 import CambrdgeDictionary from '../CambridgeDictionary';
 import WooordDictionary from '../WooordDictionary';
 import test from 'ava';
+import { cambridgeTakeOff } from './mocks/dictionaries';
 
-test('Decks parsing result', async (t) => {
-  //   let dict = new CambrdgeDictionary();
-  //   console.log(await dict.parse('armor'));
-  const dict2 = new WooordDictionary();
-  console.log(await dict2.parse('armor'));
-});
+//TODO: mock responses, test exceptions
+
+// test('success parse: take off', async (t) => {
+//   let dict = new CambrdgeDictionary();
+//   const card = await dict.parse('take off');
+
+//   t.deepEqual(cambridgeTakeOff, card);
+// });
+
+// test('not found word', async (t) => {
+//   let dict = new CambrdgeDictionary();
+//   const card = await dict.parse('123');
+
+//   t.deepEqual({ entry: '123', response: [] }, card);
+// });
