@@ -71,17 +71,6 @@ export default class WooordDictionary extends Dictionary {
     return [];
   }
 
-  private clearText(payload: string) {
-    return payload
-      .replace(/&nbsp;/g, ' ')
-      .replace(/\u00A0/g, ' ')
-      .replace(/&ensp;/g, ' ')
-      .replace(/\u2002/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .replace(/[^a-zA-Zа-яё0-9\-!@#$%^&*,.;()— ]/g, '');
-  }
-
   private getUrl(payload: string): string {
     const phrase = payload
       .trim()
