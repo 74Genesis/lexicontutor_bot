@@ -5,7 +5,10 @@ import dotenv from 'dotenv';
 import { Telegraf } from 'telegraf';
 import * as fs from 'fs';
 
-dotenv.config();
+// import UserCollection from './core/collections/UserCollection';
+
+// const u = new UserCollection();
+// u.
 
 class App {
   public controllersFolder: string = __dirname + '/controllers';
@@ -13,6 +16,7 @@ class App {
   private express: express;
 
   constructor() {
+    console.log('token ---- ' + Object.keys(process.env.BOT_TOKEN));
     this.bot = new Telegraf(process.env.BOT_TOKEN);
     this.express = express();
     this.express.use(express.static('static'));
@@ -22,9 +26,9 @@ class App {
   }
 
   run(): void {
-    this.express.get('/', (req: any, res: any) => {
-      res.sendFile(path.join(__dirname + '../index.html'));
-    });
+    // this.express.get('/', (req: any, res: any) => {
+    //   res.sendFile(path.join(__dirname + '../index.html'));
+    // });
 
     this.bot.launch();
     this.installControllers();
@@ -61,6 +65,7 @@ class App {
 
   getBot(): Telegraf {
     if (!this.bot) {
+      console.log('dasljfs --------', process.env.BOT_TOKEN);
       this.bot = new Telegraf(process.env.BOT_TOKEN);
     }
     return this.bot;
