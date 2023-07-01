@@ -34,7 +34,7 @@ export default class Sheduler {
   public reportLimit: number = 1000;
   public reps: number = 0;
   public today: number = 0;
-  public _dayCutoff: number = 0;
+  public dayCutoff: number = 0;
   public _lrnCutoff: number = 0;
 
   constructor(col) {
@@ -49,43 +49,19 @@ export default class Sheduler {
     this.resetNew();
   }
 
-  //   def _updateCutoff(self):
-  //     # days since col created
-  //     self.today = self._daysSinceCreation()
-  //     # end of day cutoff
-  //     self.dayCutoff = self._dayCutoff()
+  private updateCutoff() {
+    this.today = this.daysSinceCreation();
+    this.dayCutoff = this.getDayCutoff();
+  }
 
-  // def _checkDay(self):
-  //     # check if the day has rolled over
-  //     if time.time() > self.dayCutoff:
-  //         self.reset()
-
-  // def _dayCutoff(self):
-  //     date = datetime.datetime.today()
-  //     date = date.replace(hour=0, minute=0, second=0, microsecond=0)
-  //     if date < datetime.datetime.today():
-  //         date = date + datetime.timedelta(days=1)
-  //     stamp = int(time.mktime(date.timetuple()))
-  //     return stamp
-
+  private daysSinceCreation() {
+    let difference = date_1.getTime() - date_2.getTime();
+    let TotalDays = Math.ceil(difference / (1000 * 3600 * 24));
+    return TotalDays;
+  }
   // def _daysSinceCreation(self):
-  //     startDate = datetime.datetime.fromtimestamp(self.col.crt)
+  //     let d
   //     return int((time.time() - time.mktime(startDate.timetuple())) // 86400)
-
-  // def _updateLrnCutoff(self, force):
-  //     nextCutoff = intTime() + self.col.colConf['collapseTime']
-  //     if nextCutoff - self._lrnCutoff > 60 or force:
-  //         self._lrnCutoff = nextCutoff
-  //         return True
-  //     return False
-
-  // def _maybeResetLrn(self, force):
-  //     if self._updateLrnCutoff(force):
-  //         self._resetLrn()
-
-  // def _resetLrn(self):
-  //     self._updateLrnCutoff(force=True)
-  //     self._lrnQueue = []
 
   public getCard() {}
   public answere(card: Card, ease: number = 1) {
