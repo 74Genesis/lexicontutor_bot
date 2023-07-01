@@ -30,10 +30,65 @@ const DECK_CONF = {
 
 export default class Sheduler {
   public colleсtion: Record<string, any>[] = [];
+  public queueLimit: number = 50;
+  public reportLimit: number = 1000;
+  public reps: number = 0;
+  public today: number = 0;
+  public _dayCutoff: number = 0;
+  public _lrnCutoff: number = 0;
 
-  constructor() {}
-  getCard() {}
-  answere(card: Card, ease: number = 1) {
+  constructor(col) {
+    this.colleсtion = col;
+    this.reset();
+  }
+
+  private reset() {
+    this.updateCutoff();
+    this.resetLrn();
+    this.resetRev();
+    this.resetNew();
+  }
+
+  //   def _updateCutoff(self):
+  //     # days since col created
+  //     self.today = self._daysSinceCreation()
+  //     # end of day cutoff
+  //     self.dayCutoff = self._dayCutoff()
+
+  // def _checkDay(self):
+  //     # check if the day has rolled over
+  //     if time.time() > self.dayCutoff:
+  //         self.reset()
+
+  // def _dayCutoff(self):
+  //     date = datetime.datetime.today()
+  //     date = date.replace(hour=0, minute=0, second=0, microsecond=0)
+  //     if date < datetime.datetime.today():
+  //         date = date + datetime.timedelta(days=1)
+  //     stamp = int(time.mktime(date.timetuple()))
+  //     return stamp
+
+  // def _daysSinceCreation(self):
+  //     startDate = datetime.datetime.fromtimestamp(self.col.crt)
+  //     return int((time.time() - time.mktime(startDate.timetuple())) // 86400)
+
+  // def _updateLrnCutoff(self, force):
+  //     nextCutoff = intTime() + self.col.colConf['collapseTime']
+  //     if nextCutoff - self._lrnCutoff > 60 or force:
+  //         self._lrnCutoff = nextCutoff
+  //         return True
+  //     return False
+
+  // def _maybeResetLrn(self, force):
+  //     if self._updateLrnCutoff(force):
+  //         self._resetLrn()
+
+  // def _resetLrn(self):
+  //     self._updateLrnCutoff(force=True)
+  //     self._lrnQueue = []
+
+  public getCard() {}
+  public answere(card: Card, ease: number = 1) {
     card.reps++;
 
     // move new cards to "learning" queue and change type
@@ -74,12 +129,28 @@ export default class Sheduler {
   private startingLeft(card: Card): number {
     const conf = this.getConf(card);
 
-    const left = 
+    const left = this.leftToday(conf.delays, conf.delays.length);
+    return left * 1000 + conf.delays.length;
 
     // conf = self._lrnConf(card);
     // tot = len(conf['delays']);
     // tod = self._leftToday(conf['delays'], tot);
     // return tot + tod * 1000;
+  }
+  private leftToday(delays: number[], count: number, now = new Date()): number {
+    //   def _leftToday(self, delays, left, now=None):
+    // "The number of steps that can be completed by the day cutoff."
+    // if not now:
+    //     now = intTime()
+    // delays = delays[-left:]
+    // ok = 0
+    // for i in range(len(delays)):
+    //     now += delays[i]*60
+    //     if now > self.dayCutoff:
+    //         break
+    //     ok = i
+    // return ok+1
+    return 0;
   }
 
   private getConf(card: Card) {
